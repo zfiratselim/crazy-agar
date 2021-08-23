@@ -1,15 +1,18 @@
 import * as PIXI from "pixi.js";
 import { SmoothGraphics as Graphics } from '@pixi/graphics-smooth';
+import { Sprite } from "pixi.js";
 
 
 export default class CrazyAgar extends PIXI.Application {
+    private myCircle: Sprite;
     constructor() {
         super({
             view: <HTMLCanvasElement>document.querySelector('#canvas'),
             backgroundColor: 0x000000,
-            width: 800,
-            height: 520,
+            width: 1000,
+            height: 620,
         });
+        this.stage.interactive = true;
         this.startGame();
     }
     createCircleSprite(x: number, y: number, size: number, color: number) {
@@ -20,14 +23,21 @@ export default class CrazyAgar extends PIXI.Application {
         p.endFill();
         const t = this.renderer.generateTexture(p);
         const sprite = new PIXI.Sprite(t);
-        this.stage.addChild(sprite);
+        sprite.anchor.set(.5);
         sprite.x = x;
         sprite.y = y;
+        this.stage.addChild(sprite);
         return sprite
     }
 
+    followPointer() {
+        this.stage.on("pointermove", e => {
+            this.myCircle.position.copyFrom(e.data.global);
+        })
+    }
     startGame() {
-        const s = this.createCircleSprite(100, 100, 20, 0xFFFFFF)
+        this.myCircle = this.createCircleSprite(100, 100, 15, 0xFFFFFF);
+        this.followPointer();
     }
 }
 
