@@ -1,0 +1,26 @@
+{
+    "name": "crazy-agar",
+    "version": "1.0.0",
+    "description": "Crazy agar single play game",
+    "main": "index.js",
+    "repository": "git@github.com:zfiratselim/crazy-agar.git",
+    "author": "Fırat Selim ZİREKOĞLU <zirekoglufs@gmail.com>",
+    "license": "MIT",
+    "scripts": {
+        "dev": "parcel index.html",
+        "watch": "parcel watch index.html",
+        "server": "live-server dist",
+        "build": "parcel build --no-source-maps index.html",
+        "nuke": "rimraf .cache dist"
+    },
+    "dependencies": {
+        "pixi.js": "6.0.4",
+        "@pixi/graphics-smooth": "^0.0.13"
+    },
+    "devDependencies": {
+        "@types/pixi.js": "^5.0.0",
+        "parcel-bundler": "^1.12.4",
+        "parcel-plugin-json-url-loader": "^0.1.2",
+        "typescript": "^4.3.5"
+    }
+}
