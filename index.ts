@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { SmoothGraphics as Graphics } from '@pixi/graphics-smooth';
-import { Sprite } from "pixi.js";
+import { Container, Sprite } from "pixi.js";
 
 
 export default class CrazyAgar extends PIXI.Application {
@@ -20,18 +20,21 @@ export default class CrazyAgar extends PIXI.Application {
         this.stage.interactive = true;
         this.startGame();
     }
-    createCircleSprite(x: number, y: number, size: number, color: number) {
+    createTexture(size, color) {
         let p = new Graphics();
         p.beginFill(color);
         p.lineStyle(0);
         p.drawCircle(0, 0, size);
         p.endFill();
-        const t = this.renderer.generateTexture(p);
+        return this.renderer.generateTexture(p);
+    }
+    createCircleSprite(x: number, y: number, size: number, color: number, con: Container) {
+        const t = this.createTexture(size, color);
         const sprite = new PIXI.Sprite(t);
         sprite.anchor.set(.5);
         sprite.x = x;
         sprite.y = y;
-        this.stage.addChild(sprite);
+        con.addChild(sprite)
         return sprite
     }
     createEnemie() {
@@ -55,23 +58,39 @@ export default class CrazyAgar extends PIXI.Application {
             }
         }
         const randomRot = Math.atan2(Math.floor(Math.random() * 200 - 100 + this.H / 2 - randomY), Math.floor(Math.random() * 400 - 200 + this.W / 2 - randomX));
-        const randomSize = Math.floor(Math.random() * (this.myCircle.width * 2 - this.myCircle.width / 3) + this.myCircle.width / 3);
+        const randomSize = Math.floor(Math.random() * this.myCircle.width/2 * .8 + this.myCircle.width/2 * .3);
         const randomColor = colors[Math.floor(Math.random() * (colors.length - 0.1))];
-        const enemie = this.createCircleSprite(randomX, randomY, randomSize, randomColor);
+        const enemie = this.createCircleSprite(randomX, randomY, randomSize, randomColor, this.stage.children[0] as Container);
         enemie.rotation = randomRot;
         this.enemies.push(enemie);
     }
     tickerFunc() {
         const l = 2;
+        const killEnemie = (enemie, i) => {
+            enemie.parent.removeChild(enemie);
+            enemie.destroy();
+            this.enemies.splice(i, 1);
+        }
         this.ticker.add(delta => {
-            console.log(this.enemies.length)
             this.enemies.forEach((enemie, i) => {
                 enemie.x += Math.floor(Math.cos(enemie.rotation) * l);
                 enemie.y += Math.floor(Math.sin(enemie.rotation) * l);
+                const distance = Math.sqrt(Math.pow(enemie.x - this.myCircle.x, 2) + Math.pow(enemie.y - this.myCircle.y, 2));
+                if (distance < enemie.width + this.myCircle.width) {
+                    if (this.myCircle.width > enemie.width) {
+                        killEnemie(enemie, i);
+                        this.myCircle.width += 1;
+                        this.myCircle.height += 1;
+                        this.myCircle.texture = (this.createTexture(this.myCircle.width, 0xFFFFFF));
+                        this.createEnemie();
+                        return
+                    } else {
+                        console.log("killed")
+                    }
+                }
                 if (enemie.x > this.W + 100 || enemie.x < -100 || enemie.y > this.H + 100 || enemie.y < -100) {
-                    enemie.parent.removeChild(enemie);
-                    enemie.destroy();
-                    this.enemies.splice(i, 1);
+                    killEnemie(enemie, i);
+                    this.createEnemie();
                 }
             })
         })
@@ -82,7 +101,9 @@ export default class CrazyAgar extends PIXI.Application {
         })
     }
     startGame() {
-        this.myCircle = this.createCircleSprite(500, 310, 12, 0xFFFFFF);
+        const enemiesCon = new Container();
+        this.stage.addChild(enemiesCon);
+        this.myCircle = this.createCircleSprite(500, 310, 12, 0xFFFFFF, this.stage);
         this.followPointer();
         let i = 0;
         const interval = setInterval(() => {
@@ -96,4 +117,4 @@ export default class CrazyAgar extends PIXI.Application {
     }
 }
 
-(window as any).context = new CrazyAgar(1000, 620);
+(window as any).context = new CrazyAgar(screen.width, screen.height);
